@@ -9,14 +9,14 @@ import {
   X,
   CircleDollarSign,
   MessageSquareText,
-  UserCheck,
-  Lock
+  Lock,
+  Loader2
 } from 'lucide-react';
-import Dashboard from './components/Dashboard';
-import InternalGuidelines from './components/InternalGuidelines';
-import LoanCalculator from './components/LoanCalculator';
-import RealEstateTaxCalc from './components/RealEstateTaxCalc';
-import AiInquiry from './components/AiInquiry';
+import Dashboard from './components/Dashboard.tsx';
+import InternalGuidelines from './components/InternalGuidelines.tsx';
+import LoanCalculator from './components/LoanCalculator.tsx';
+import RealEstateTaxCalc from './components/RealEstateTaxCalc.tsx';
+import AiInquiry from './components/AiInquiry.tsx';
 
 type View = 'dashboard' | 'guidelines' | 'loan-calc' | 'tax-calc' | 'ai-inquiry';
 
@@ -28,18 +28,29 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const approvalStatus = localStorage.getItem('nh_pro_approved');
-    if (approvalStatus === 'true') setIsApproved(true);
-    else setIsApproved(false);
+    if (approvalStatus === 'true') {
+      setIsApproved(true);
+    } else {
+      setIsApproved(false);
+    }
   }, []);
 
   const handleApproval = (e: React.FormEvent) => {
     e.preventDefault();
-    // 실제 운영 시 관리자 DB 연동이 필요하나, 여기서는 시뮬레이션을 위해 즉시 승인 로직 제공
     if (userName.trim()) {
       localStorage.setItem('nh_pro_approved', 'true');
       setIsApproved(true);
     }
   };
+
+  // 초기 상태 확인 중에는 로딩 화면 표시
+  if (isApproved === null) {
+    return (
+      <div className="min-h-screen bg-[#f0f4f8] flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-[#00479d] animate-spin" />
+      </div>
+    );
+  }
 
   if (isApproved === false) {
     return (
@@ -106,7 +117,7 @@ const App: React.FC = () => {
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-8 h-8 text-[#ccdb00]" />
-              <span className="text-xl font-black tracking-tight">농협 여신 실무 PRO</span>
+              <span className="text-xl font-black tracking-tight">농협 여신 PRO</span>
             </div>
             <span className="text-[10px] text-blue-200 mt-1 ml-10">by kimdaeyoon</span>
           </div>
@@ -126,7 +137,7 @@ const App: React.FC = () => {
         <div className="absolute bottom-0 w-full p-6 border-t border-blue-800">
           <div className="flex items-center gap-3 text-blue-200 text-xs font-bold">
             <div className="w-2.5 h-2.5 rounded-full bg-[#ccdb00] animate-pulse"></div>
-            <span>'26.02 최신 지침 반영</span>
+            <span>'26.02 지침 반영됨</span>
           </div>
         </div>
       </aside>
@@ -136,7 +147,7 @@ const App: React.FC = () => {
           <button className="md:hidden" onClick={toggleSidebar}><Menu className="w-8 h-8 text-slate-600" /></button>
           <div className="flex-1 flex justify-end items-center gap-6">
             <div className="hidden lg:flex items-center gap-4">
-              <span className="text-sm font-black text-slate-800 uppercase tracking-wider tracking-tighter">최종 접속 권한자:</span>
+              <span className="text-sm font-black text-slate-800 tracking-tighter">최종 접속 권한자:</span>
               <span className="px-4 py-1.5 bg-[#ccdb00]/20 text-[#00479d] rounded-full font-black text-xs border border-[#ccdb00]">승인됨</span>
             </div>
             <div className="w-10 h-10 rounded-xl bg-[#00479d] flex items-center justify-center text-white font-black text-sm border-2 border-[#ccdb00] shadow-md">NH</div>

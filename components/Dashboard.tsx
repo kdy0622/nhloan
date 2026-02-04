@@ -11,12 +11,15 @@ import {
   MessageSquareText,
   CircleDollarSign,
   FileSearch,
-  ShieldAlert
+  ShieldAlert,
+  ExternalLink
 } from 'lucide-react';
 
 interface DashboardProps {
   onViewChange: (view: any) => void;
 }
+
+const AI_GEMINI_URL = "https://gemini.google.com/gem/1mscxQ0VVmKOkXr8POixiGAV935uGVm35?usp=sharing";
 
 const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
   return (
@@ -92,11 +95,16 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
             <ArrowRight className="w-4 h-4 text-blue-400 group-hover:translate-x-1 transition-all" />
           </button>
 
-          <button onClick={() => onViewChange('ai-inquiry')}
-            className="flex items-center justify-between p-5 rounded-2xl bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-all group shadow-sm">
+          <button onClick={() => window.open(AI_GEMINI_URL, '_blank')}
+            className="flex items-center justify-between p-5 rounded-2xl bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-all group shadow-sm relative">
             <div className="flex items-center gap-3">
               <MessageSquareText className="w-6 h-6 text-indigo-600" />
-              <div className="text-left"><p className="font-black text-base text-indigo-800">규제 AI 문의</p><p className="text-[10px] text-indigo-600 font-bold">Gemini-3 Pro 기반 상담</p></div>
+              <div className="text-left">
+                <p className="font-black text-base text-indigo-800 flex items-center gap-1.5">
+                  규제 AI 문의 <ExternalLink className="w-3 h-3 text-indigo-400" />
+                </p>
+                <p className="text-[10px] text-indigo-600 font-bold">농협 지침 학습 Gemini 열기</p>
+              </div>
             </div>
             <ArrowRight className="w-4 h-4 text-indigo-400 group-hover:translate-x-1 transition-all" />
           </button>

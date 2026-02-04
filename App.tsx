@@ -9,16 +9,18 @@ import {
   CircleDollarSign,
   MessageSquareText,
   Activity,
-  FileSearch
+  FileSearch,
+  ExternalLink
 } from 'lucide-react';
 import Dashboard from './components/Dashboard.tsx';
 import InternalGuidelines from './components/InternalGuidelines.tsx';
 import LoanCalculator from './components/LoanCalculator.tsx';
 import RealEstateTaxCalc from './components/RealEstateTaxCalc.tsx';
-import AiInquiry from './components/AiInquiry.tsx';
 import RegulationSummary1015 from './components/RegulationSummary1015.tsx';
 
-type View = 'dashboard' | 'guidelines' | 'loan-calc' | 'tax-calc' | 'ai-inquiry' | 'reg-1015';
+type View = 'dashboard' | 'guidelines' | 'loan-calc' | 'tax-calc' | 'reg-1015';
+
+const AI_GEMINI_URL = "https://gemini.google.com/gem/1mscxQ0VVmKOkXr8POixiGAV935uGVm35?usp=sharing";
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('dashboard');
@@ -27,12 +29,12 @@ const App: React.FC = () => {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const navigation = [
-    { name: '대시보드', icon: LayoutDashboard, view: 'dashboard' as View },
-    { name: '10.15 규제요약', icon: FileSearch, view: 'reg-1015' as View },
-    { name: '실무 통합 지침', icon: Info, view: 'guidelines' as View },
-    { name: '주담대 한도계산', icon: Calculator, view: 'loan-calc' as View },
-    { name: '규제 AI 문의', icon: MessageSquareText, view: 'ai-inquiry' as View },
-    { name: 'DSR/부동산 계산기', icon: CircleDollarSign, view: 'tax-calc' as View },
+    { name: '대시보드', icon: LayoutDashboard, view: 'dashboard' as View, external: false },
+    { name: '10.15 규제요약', icon: FileSearch, view: 'reg-1015' as View, external: false },
+    { name: '실무 통합 지침', icon: Info, view: 'guidelines' as View, external: false },
+    { name: '주담대 한도계산', icon: Calculator, view: 'loan-calc' as View, external: false },
+    { name: '규제 AI 문의', icon: MessageSquareText, view: null, external: true, url: AI_GEMINI_URL },
+    { name: 'DSR/부동산 계산기', icon: CircleDollarSign, view: 'tax-calc' as View, external: false },
   ];
 
   const renderView = () => {
@@ -42,9 +44,17 @@ const App: React.FC = () => {
       case 'guidelines': return <InternalGuidelines />;
       case 'loan-calc': return <LoanCalculator />;
       case 'tax-calc': return <RealEstateTaxCalc />;
-      case 'ai-inquiry': return <AiInquiry />;
       default: return <Dashboard onViewChange={setCurrentView} />;
     }
+  };
+
+  const handleNavClick = (item: any) => {
+    if (item.external) {
+      window.open(item.url, '_blank');
+    } else {
+      setCurrentView(item.view);
+    }
+    if (window.innerWidth < 768) setIsSidebarOpen(false);
   };
 
   return (
@@ -64,10 +74,16 @@ const App: React.FC = () => {
 
         <nav className="mt-4 px-3 space-y-1 overflow-y-auto max-h-[calc(100vh-100px)]">
           {navigation.map((item) => (
-            <button key={item.name} onClick={() => { setCurrentView(item.view); if (window.innerWidth < 768) setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === item.view ? 'bg-[#008e46] text-white shadow-md' : 'text-blue-100 hover:bg-blue-800'}`}>
-              <item.icon className="w-5 h-5" />
-              <span className="font-bold text-sm">{item.name}</span>
+            <button 
+              key={item.name} 
+              onClick={() => handleNavClick(item)}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${currentView === item.view ? 'bg-[#008e46] text-white shadow-md' : 'text-blue-100 hover:bg-blue-800'}`}
+            >
+              <div className="flex items-center gap-3">
+                <item.icon className="w-5 h-5" />
+                <span className="font-bold text-sm">{item.name}</span>
+              </div>
+              {item.external && <ExternalLink className="w-3 h-3 opacity-50" />}
             </button>
           ))}
         </nav>

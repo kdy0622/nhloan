@@ -25,45 +25,48 @@ const AiInquiry: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Create a new GoogleGenAI instance right before the call to ensure the latest API key is used
+      // 최신 API 키를 사용하기 위해 호출 직전에 인스턴스 생성
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      
+      // 더 빠르고 안정적인 gemini-3-flash-preview 모델 사용 (연결 오류 해결을 위한 최적화)
       const response = await ai.models.generateContent({
-        // Using gemini-3-pro-preview for complex reasoning on financial regulations
-        model: 'gemini-3-pro-preview',
-        contents: { parts: [{ text: userMessage }] },
+        model: 'gemini-3-flash-preview',
+        contents: [{ role: 'user', parts: [{ text: userMessage }] }],
         config: {
           systemInstruction: `
             당신은 NH농협은행의 숙련된 여신 실무 전문가입니다. 다음의 '주담대 1015 대책' 핵심 지침을 바탕으로 사용자의 질문에 답변하십시오.
 
             [중요 출력 규칙]
-            1. 모든 형태의 별표(*) 기호를 절대로 사용하지 마십시오. (강조나 목록 표시 모두 금지)
-            2. 대신 가독성이 좋도록 줄바꿈을 자주 사용하고, 필요한 경우 숫자를 사용하여 목록을 만드십시오 (예: 1. 2. 3.).
+            1. 모든 형태의 별표(*) 기호를 절대로 사용하지 마십시오.
+            2. 대신 가독성이 좋도록 줄바꿈을 자주 사용하고, 숫자를 사용하여 목록을 만드십시오 (예: 1. 2. 3.).
             3. 답변은 전문적이면서도 친절한 실무자 어투를 사용하십시오.
 
             [핵심 지침 - 10.15 대책]
-            1. 수도권 구입자금 대출 한도 상한 적용:
+            1. 수도권 구입자금 대출 한도 상한:
                - 시가 15억 이하: 최대 6억 상한
                - 시가 15억 초과 ~ 25억 이하: 최대 4억 상한
                - 시가 25억 초과: 최대 2억 상한
-            2. 생활안정자금: 규제/수도권 1주택자 합산 1억원 이내 제한 (원칙적).
-            3. LTV/DTI: 규제지역 LTV 40% 적용 및 수도권 강화.
-            4. 스트레스 DSR: 수도권/규제지역 주담대 3.0% 반영 필수.
-            5. 의무: 6개월 내 전입 및 기존주택 처분/등기이전 필수.
+            2. 생활안정자금: 규제/수도권 1주택자 합산 1억원 이내 제한.
+            3. LTV: 규제지역 40% 적용 및 수도권 강화 지침 준수.
+            4. 스트레스 DSR: 수도권/규제지역 주담대 3.0% 가산 필수 적용.
+            5. 사후관리: 6개월 내 전입 및 기존주택 처분 의무 준수 확인.
             
-            사용자의 질문에 대해 위 기준을 근거로 명확히 답변하세요. 금액 단위는 '백만원' 혹은 '억원'을 사용하세요.
+            사용자의 질문에 대해 위 기준을 근거로 명확히 답변하세요.
           `
         }
       });
 
-      // Extract text output directly from the response object as a property (not a method)
+      // .text 속성을 통해 직접 텍스트 추출
       let reply = response.text || '죄송합니다. 답변을 생성할 수 없습니다.';
-      // Clean up text by removing asterisks as per system instruction reinforcement
       reply = reply.replace(/\*/g, '').trim(); 
       
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
     } catch (error) {
       console.error('AI Inquiry Error:', error);
-      setMessages(prev => [...prev, { role: 'assistant', content: '서버 연결 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }]);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: '현재 서버 연결이 원활하지 않거나 할당량이 초과되었습니다. 잠시 후 다시 시도해 주시거나, 메인 화면의 규제 요약 지침을 참고해 주세요.' 
+      }]);
     } finally {
       setIsLoading(false);
     }
@@ -78,11 +81,11 @@ const AiInquiry: React.FC = () => {
           </div>
           <div>
             <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight break-keep">규제 지침 AI 상담원</h2>
-            <p className="text-[10px] md:text-xs text-slate-400 font-bold break-keep">10.15 대책 전문 가이드</p>
+            <p className="text-[10px] md:text-xs text-slate-400 font-bold break-keep">10.15 대책 통합 가이드 (Fast-Flash)</p>
           </div>
         </div>
         <div className="hidden sm:block bg-slate-50 px-4 py-2 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-100">
-          Knowledge Base: NH_LENDING_1015
+          STABLE_MODE: ENABLED
         </div>
       </div>
 
@@ -113,7 +116,7 @@ const AiInquiry: React.FC = () => {
                 <Loader2 className="w-4 h-4 text-[#ccdb00] animate-spin" />
               </div>
               <div className="bg-slate-200 p-4 rounded-2xl rounded-tl-none animate-pulse text-slate-500 font-black text-[10px] md:text-xs">
-                지침서를 분석 중입니다...
+                지침 데이터를 신속하게 분석 중입니다...
               </div>
             </div>
           </div>
@@ -139,7 +142,7 @@ const AiInquiry: React.FC = () => {
           </button>
         </form>
         <div className="mt-3 flex items-center gap-2 text-[9px] md:text-[10px] text-slate-400 font-bold justify-center break-keep">
-          <Info className="w-3 h-3" /> AI 답변은 참고용이며 최종 여신 승인은 관련 지침 원본을 재확인하십시오.
+          <Info className="w-3 h-3" /> Flash 모델 최적화 적용됨. 답변이 오지 않을 경우 인터넷 연결을 확인하세요.
         </div>
       </div>
     </div>

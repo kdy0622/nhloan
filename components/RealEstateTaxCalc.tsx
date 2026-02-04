@@ -1,68 +1,64 @@
 
 import React from 'react';
-// Added Calculator to the imported icons to fix the 'Cannot find name' error
-import { CircleDollarSign, Info, Building2, ArrowRight, ExternalLink, Calculator } from 'lucide-react';
+import { ExternalLink, RotateCcw, AlertCircle } from 'lucide-react';
 
 const RealEstateTaxCalc: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto space-y-10 animate-in zoom-in-95 duration-700 pb-20 font-medium">
-      <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl border-2 border-slate-100 text-center">
-        <div className="w-20 h-20 bg-emerald-100 text-[#008e46] rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner">
-          <CircleDollarSign className="w-12 h-12" />
+    <div className="w-full h-[calc(100vh-10rem)] bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 flex flex-col animate-in zoom-in-95 duration-500">
+      {/* Control Header */}
+      <div className="bg-slate-50 px-4 py-3 border-b flex justify-between items-center shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+          <span className="text-[11px] font-black text-slate-500 uppercase tracking-tight">
+            부동산계산기.com 외부 서비스 실시간 연결
+          </span>
         </div>
-        <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-6 break-keep">
-          부동산 세금 및 정밀 계산기
-        </h2>
-        <p className="text-slate-500 font-bold text-lg mb-10 leading-relaxed break-keep">
-          취득세, 양도세, 증여세 및 중개보수 등<br/>
-          정밀한 부동산 관련 계산을 위해 전문 도구를 이용하세요.
-        </p>
-
-        <div className="grid grid-cols-1 gap-6">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => window.location.reload()}
+            className="flex items-center gap-1 text-[10px] font-black text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            <RotateCcw className="w-3 h-3" /> 새로고침
+          </button>
           <a 
-            href="https://xn--989a00af8jnslv3dba.com/#google_vignette" 
+            href="https://xn--989a00af8jnslv3dba.com/" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="group relative bg-gradient-to-br from-[#008e46] to-[#007036] text-white p-8 rounded-[2rem] font-black text-xl md:text-2xl hover:scale-105 transition-all shadow-2xl flex flex-col items-center gap-4 active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#008e46] text-white rounded-lg text-[11px] font-black hover:bg-[#007036] transition-all shadow-sm"
           >
-            <div className="flex items-center gap-4">
-              <Building2 className="w-10 h-10" />
-              <span>부동산 계산기 (외부 사이트) 바로가기</span>
-              <ExternalLink className="w-8 h-8 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-            </div>
+            외부 브라우저에서 열기 <ExternalLink className="w-3 h-3" />
           </a>
         </div>
+      </div>
 
-        <div className="mt-12 p-8 bg-slate-50 rounded-[2rem] border-2 border-slate-100 text-left">
-          <h3 className="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
-            <Info className="w-6 h-6 text-[#00479d]" /> 이용 안내
-          </h3>
-          <ul className="space-y-4 text-slate-600 font-bold text-sm md:text-base">
-            <li className="flex gap-3 items-start">
-              <ArrowRight className="w-5 h-5 shrink-0 text-[#008e46] mt-0.5" />
-              <span>외부 부동산 계산기 사이트(부동산 계산기.com)로 연결됩니다.</span>
-            </li>
-            <li className="flex gap-3 items-start">
-              <ArrowRight className="w-5 h-5 shrink-0 text-[#008e46] mt-0.5" />
-              <span>복잡한 취득세, 양도세, 증여세 등을 상세하게 계산할 수 있습니다.</span>
-            </li>
-            <li className="flex gap-3 items-start">
-              <ArrowRight className="w-5 h-5 shrink-0 text-[#008e46] mt-0.5" />
-              <span>결과값은 참고용으로만 활용하시고, 정확한 세액은 세무 상담을 권장합니다.</span>
-            </li>
-          </ul>
+      {/* Main Content Area */}
+      <div className="flex-1 relative bg-slate-100">
+        <iframe 
+          src="https://xn--989a00af8jnslv3dba.com/" 
+          className="absolute inset-0 w-full h-full border-none"
+          title="부동산 계산기 서비스"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+        
+        {/* Fallback Overlay (shown briefly or if iframe is clearly empty/blocked) */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 hover:opacity-100 transition-opacity">
+          <div className="bg-white/90 backdrop-blur p-4 rounded-xl shadow-lg border flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-500" />
+            <p className="text-xs font-bold text-slate-600">
+              콘텐츠가 보이지 않을 경우 우측 상단 '외부 브라우저에서 열기'를 클릭하세요.
+            </p>
+          </div>
         </div>
       </div>
       
-      <div className="flex justify-center">
-        <div className="flex items-center gap-2 text-slate-400 font-bold text-xs">
-          <Calculator className="w-4 h-4" />
-          <span>NH 여신 실무 도우미 - 부가 도구</span>
-        </div>
+      {/* Footer Info */}
+      <div className="px-4 py-2 bg-slate-50 border-t text-[10px] font-bold text-slate-400 flex justify-between items-center">
+        <span>본 서비스는 외부 사이트(부동산계산기.com)의 정보를 활용합니다.</span>
+        <span>NH 여신 실무 통합 도구</span>
       </div>
     </div>
   );
 };
 
-// Fix: Add default export to resolve the error in App.tsx on line 18
 export default RealEstateTaxCalc;

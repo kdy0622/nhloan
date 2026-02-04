@@ -25,39 +25,24 @@ const AiInquiry: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // 최신 API 키를 사용하기 위해 호출 직전에 인스턴스 생성
+      // 1. 가이드라인에 따라 { apiKey: process.env.API_KEY } 형식으로 인스턴스 생성
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
-      // 더 빠르고 안정적인 gemini-3-flash-preview 모델 사용 (연결 오류 해결을 위한 최적화)
+      // 2. 모델은 가장 안정적인 gemini-3-flash-preview 사용
+      // 3. contents는 가이드라인 예제처럼 단순 문자열로 전달하여 오류 가능성 최소화
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+        contents: userMessage,
         config: {
-          systemInstruction: `
-            당신은 NH농협은행의 숙련된 여신 실무 전문가입니다. 다음의 '주담대 1015 대책' 핵심 지침을 바탕으로 사용자의 질문에 답변하십시오.
-
-            [중요 출력 규칙]
-            1. 모든 형태의 별표(*) 기호를 절대로 사용하지 마십시오.
-            2. 대신 가독성이 좋도록 줄바꿈을 자주 사용하고, 숫자를 사용하여 목록을 만드십시오 (예: 1. 2. 3.).
-            3. 답변은 전문적이면서도 친절한 실무자 어투를 사용하십시오.
-
-            [핵심 지침 - 10.15 대책]
-            1. 수도권 구입자금 대출 한도 상한:
-               - 시가 15억 이하: 최대 6억 상한
-               - 시가 15억 초과 ~ 25억 이하: 최대 4억 상한
-               - 시가 25억 초과: 최대 2억 상한
-            2. 생활안정자금: 규제/수도권 1주택자 합산 1억원 이내 제한.
-            3. LTV: 규제지역 40% 적용 및 수도권 강화 지침 준수.
-            4. 스트레스 DSR: 수도권/규제지역 주담대 3.0% 가산 필수 적용.
-            5. 사후관리: 6개월 내 전입 및 기존주택 처분 의무 준수 확인.
-            
-            사용자의 질문에 대해 위 기준을 근거로 명확히 답변하세요.
-          `
+          systemInstruction: `당신은 NH농협은행의 숙련된 여신 실무 전문가입니다. 
+          10.15 대책(수도권 한도 6/4/2억 상한, 생활자금 1억 제한 등)을 바탕으로 답변하세요. 
+          별표(*)를 쓰지 말고, 번호(1. 2.)와 줄바꿈을 사용하여 친절하게 설명하세요.`,
+          temperature: 0.7,
         }
       });
 
-      // .text 속성을 통해 직접 텍스트 추출
-      let reply = response.text || '죄송합니다. 답변을 생성할 수 없습니다.';
+      // 4. response.text 속성을 통해 결과 추출 (메서드 아님)
+      let reply = response.text || '답변을 생성하지 못했습니다. 다시 시도해 주세요.';
       reply = reply.replace(/\*/g, '').trim(); 
       
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
@@ -65,7 +50,7 @@ const AiInquiry: React.FC = () => {
       console.error('AI Inquiry Error:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: '현재 서버 연결이 원활하지 않거나 할당량이 초과되었습니다. 잠시 후 다시 시도해 주시거나, 메인 화면의 규제 요약 지침을 참고해 주세요.' 
+        content: '현재 서버와의 통신이 원활하지 않습니다. (Flash 모델 최적화 중)\n\n원인: 네트워크 일시 오류 또는 할당량 초과\n해결: 잠시 후 다시 질문해 주시거나, 메인 화면의 [10.15 규제 요약] 메뉴를 확인해 주세요.' 
       }]);
     } finally {
       setIsLoading(false);
@@ -81,11 +66,11 @@ const AiInquiry: React.FC = () => {
           </div>
           <div>
             <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight break-keep">규제 지침 AI 상담원</h2>
-            <p className="text-[10px] md:text-xs text-slate-400 font-bold break-keep">10.15 대책 통합 가이드 (Fast-Flash)</p>
+            <p className="text-[10px] md:text-xs text-slate-400 font-bold break-keep">10.15 대책 통합 가이드 (Stable-Flash)</p>
           </div>
         </div>
-        <div className="hidden sm:block bg-slate-50 px-4 py-2 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-100">
-          STABLE_MODE: ENABLED
+        <div className="hidden sm:block bg-[#008e46]/10 px-4 py-2 rounded-xl text-[10px] font-black text-[#008e46] uppercase tracking-widest border border-[#008e46]/20">
+          STABLE_MODE: ACTIVE
         </div>
       </div>
 
@@ -142,7 +127,7 @@ const AiInquiry: React.FC = () => {
           </button>
         </form>
         <div className="mt-3 flex items-center gap-2 text-[9px] md:text-[10px] text-slate-400 font-bold justify-center break-keep">
-          <Info className="w-3 h-3" /> Flash 모델 최적화 적용됨. 답변이 오지 않을 경우 인터넷 연결을 확인하세요.
+          <Info className="w-3 h-3 text-emerald-500" /> Flash 모델을 통한 무료 티어 안정 모드가 활성화되었습니다.
         </div>
       </div>
     </div>

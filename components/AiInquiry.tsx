@@ -7,12 +7,13 @@ import {
   Bot, 
   User, 
   Loader2, 
-  Info, 
   RefreshCw, 
   ShieldCheck,
   Zap,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  AlertCircle,
+  HelpCircle
 } from 'lucide-react';
 
 const AiInquiry: React.FC = () => {
@@ -20,10 +21,11 @@ const AiInquiry: React.FC = () => {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
     { 
       role: 'assistant', 
-      content: '반갑습니다. NH농협 여신 실무 전문 AI 상담원입니다.\n\n사용자께서 제공하신 [10.15 대출수요 관리 강화방안] 지침을 완벽히 학습하였습니다. 수도권 한도 상한, 생활안정자금 규제 등 복잡한 실무 지침에 대해 웹앱 내에서 즉시 답변해 드립니다.' 
+      content: '반갑습니다. 농협 여신 실무자를 위한 **NH-GEM 지침 엔진**입니다.\n\n사용자께서 요청하신 [10.15 대출수요 관리 강화방안] 및 수도권 구입자금 상한 지침이 본 엔진에 완벽히 탑재되었습니다. 외부 GEM 페이지로 이동하지 않고도 이곳에서 즉시 전문 상담이 가능합니다.' 
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,43 +40,37 @@ const AiInquiry: React.FC = () => {
 
     const userMessage = input.trim();
     setInput('');
+    setErrorDetail(null);
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
 
     try {
-      // 시스템에 할당된 API 키(AIzaSyDnXYUz3RBvu3YrrZrh8hzq4DQQhpnXnT4)를 자동으로 사용
+      // API 키는 시스템에서 제공된 AIzaSyDnXYUz3RBvu3YrrZrh8hzq4DQQhpnXnT4를 사용함
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: userMessage,
         config: {
-          systemInstruction: `당신은 NH농협은행의 최고 여신 심사역이자, 제공된 '10.15 대책 지침(GEM)'의 모든 로직을 대변하는 AI입니다. 
-          외부 GEM 페이지에 접속하지 않아도 웹앱 내에서 동일한 수준의 상담을 제공해야 합니다.
+          systemInstruction: `당신은 농협은행의 수석 여신 심사역이며, 구글 Gemini(GEM)와 동일한 지식을 가진 전문 AI입니다. 
+          웹앱 외부로 나가지 않아도 사용자가 GEM 공유 링크의 내용을 그대로 경험할 수 있도록 다음 지침을 반드시 따르세요.
 
-          [반드시 준수해야 할 10.15 대책 핵심 로직]
-          1. 구입자금 한도 상한 (수도권/규제지역):
-             - 시가 15억 이하: 최대 600백만원
-             - 15억 초과 ~ 25억 이하: 최대 400백만원
-             - 25억 초과: 최대 200백만원
-             - 예외: 이주비 대출은 주택가격 무관 600백만원 상한
+          [10.15 대출수요 관리 강화방안 핵심 지침]
+          1. 수도권/규제지역 구입자금 상한: 
+             - 시가 15억 이하: 최대 6억(600백만원)
+             - 15억 초과 ~ 25억 이하: 최대 4억(400백만원)
+             - 25억 초과: 최대 2억(200백만원)
+             - 예외: 이주비 대출은 가격 무관 6억 상한
+          2. 생활안정자금: 수도권/규제지역 인별 합산 1억(100백만원) 상한. 기존 대출 포함.
+          3. 스트레스 DSR 2단계: 수도권/규제지역 차주에게 3.0% 가산 금리 적용 필수.
+          4. 사후관리: 처분/전입 의무 6개월 내 이행 필수. 위반 시 3년간 대출 금지.
 
-          2. 생활안정자금 제한:
-             - 수도권/규제지역 내 인별 합산 100백만원(1억) 제한. 기존 대출 포함 기준임.
-
-          3. 스트레스 DSR 2단계:
-             - 수도권 및 규제지역 차주에게 스트레스 금리 3.00% 가산 필수 적용.
-
-          4. 사후관리 의무:
-             - 처분조건부/무주택 전입의무 모두 '6개월' 내 이행 필수. 위반 시 3년간 대출 제한.
-
-          [답변 스타일 가이드]
-          - 농협의 수석 심사역다운 정중하고 전문적인 말투를 유지하세요.
-          - 모든 수치는 '백만원' 단위를 기본으로 사용하세요.
-          - 답변 시 별표(*) 부호를 절대 사용하지 마십시오.
-          - 항목은 번호(1., 2., 3.)를 매겨 명확하게 구분하고, 줄바꿈을 적극 활용하여 모바일 가독성을 높이세요.
-          - 질문이 모호할 경우 '주택 소재지'나 '보유 주택 수'를 먼저 확인하는 질문을 던지세요.`,
-          temperature: 0.1, // 답변의 정확도를 위해 온도를 낮춤
+          [답변 스타일]
+          - 정중하고 명확한 어조를 사용하세요.
+          - 모든 수치는 '백만원' 단위를 병기하세요.
+          - 답변 시 별표(*) 부호를 절대 사용하지 마십시오. 번호와 줄바꿈만 사용하세요.
+          - 질문이 모호하면 주택 소재지와 보유 주택 수를 먼저 확인하세요.`,
+          temperature: 0.1,
         }
       });
 
@@ -86,13 +82,14 @@ const AiInquiry: React.FC = () => {
           content: reply.replace(/\*/g, '').trim() 
         }]);
       } else {
-        throw new Error("지침 분석 결과 응답이 비어있습니다.");
+        throw new Error("EMPTY_RESPONSE");
       }
     } catch (error: any) {
       console.error('AI API Error:', error);
+      setErrorDetail(error.message || 'Unknown Connection Error');
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: '현재 지침 분석 엔진 연결이 일시적으로 원활하지 않습니다. 잠시 후 다시 시도해 주시거나, 입력하신 정보가 여신 지침 범위 내에 있는지 확인해 주세요.' 
+        content: '죄송합니다. 지침 분석 엔진과의 연결이 원활하지 않습니다. API 키가 활성화되지 않았거나 서버 일시 오류일 수 있습니다. 하단의 [엔진 재시작] 버튼을 눌러주세요.' 
       }]);
     } finally {
       setIsLoading(false);
@@ -100,63 +97,66 @@ const AiInquiry: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-10rem)] md:h-[calc(100vh-12rem)] animate-in fade-in duration-700">
-      {/* Gemini Style Header */}
-      <div className="bg-white p-4 md:p-6 rounded-t-[2.5rem] border-b border-slate-100 shadow-sm flex items-center justify-between shrink-0">
+    <div className="flex flex-col h-[calc(100vh-10rem)] md:h-[calc(100vh-12rem)] animate-in fade-in duration-700 bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
+      {/* GEM-Style Header */}
+      <div className="bg-white/80 backdrop-blur-md p-4 md:p-6 border-b border-slate-50 flex items-center justify-between shrink-0 z-20">
         <div className="flex items-center gap-4">
-          <div className="relative">
-            <div className="p-3 bg-gradient-to-tr from-[#00479d] via-blue-600 to-emerald-500 rounded-2xl text-white shadow-lg">
-              <Sparkles className="w-6 h-6 animate-pulse" />
+          <div className="relative group">
+            <div className="p-3 bg-gradient-to-tr from-[#00479d] via-blue-500 to-[#ccdb00] rounded-2xl text-white shadow-lg transition-transform group-hover:rotate-12">
+              <Sparkles className="w-6 h-6" />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full animate-pulse"></div>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">NH-GEM 지침 엔진</h2>
-              <span className="px-2 py-0.5 bg-blue-50 text-[#00479d] text-[9px] font-black rounded-md border border-blue-100 uppercase tracking-widest">v2.5 Pro</span>
+              <h2 className="text-xl font-black text-slate-800 tracking-tight">NH-GEM 지침 엔진</h2>
+              <span className="px-2 py-0.5 bg-blue-50 text-[#00479d] text-[9px] font-black rounded-md border border-blue-100">PRO v3.0</span>
             </div>
-            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1">
-              <Zap className="w-2.5 h-2.5 text-amber-500 fill-amber-500" /> 10.15 Regulation Knowledge Base Active
+            <p className="text-[11px] text-slate-400 font-bold flex items-center gap-1 mt-0.5">
+              <ShieldCheck className="w-3 h-3 text-emerald-500" /> 10.15 Regulation Knowledge Base Active
             </p>
           </div>
         </div>
         
         <div className="flex items-center gap-2">
           <button 
-            onClick={() => setMessages([{ role: 'assistant', content: '지침 상담을 새로 시작합니다. 궁금하신 내용을 말씀해 주세요.' }])}
+            onClick={() => window.location.reload()}
             className="flex items-center gap-1.5 px-3 py-2 text-slate-400 hover:text-[#00479d] hover:bg-slate-50 rounded-xl transition-all font-bold text-xs"
           >
-            <RefreshCw className="w-4 h-4" /> 리셋
+            <RefreshCw className="w-4 h-4" /> 엔진 재시작
           </button>
         </div>
       </div>
 
-      {/* Modern Chat Display Area */}
+      {/* Message Display Area */}
       <div 
         ref={scrollRef}
-        className="flex-1 bg-[#fcfdfe] p-4 md:p-8 overflow-y-auto space-y-8 no-scrollbar scroll-smooth"
+        className="flex-1 bg-white p-4 md:p-10 overflow-y-auto space-y-10 no-scrollbar"
       >
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-4 duration-500`}>
-            <div className={`max-w-[95%] md:max-w-[80%] flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${
-                msg.role === 'user' ? 'bg-[#008e46]' : 'bg-white border border-slate-200'
+            <div className={`max-w-[95%] md:max-w-[85%] flex gap-5 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-all ${
+                msg.role === 'user' ? 'bg-[#008e46] shadow-emerald-100' : 'bg-slate-50 border border-slate-100 shadow-slate-50'
               }`}>
                 {msg.role === 'user' ? <User className="w-5 h-5 text-white" /> : <Bot className="w-5 h-5 text-[#00479d]" />}
               </div>
-              <div className={`relative p-5 rounded-[2rem] font-bold text-[14px] md:text-[15.5px] shadow-sm leading-[1.7] break-keep whitespace-pre-wrap transition-all ${
+              <div className={`relative p-6 rounded-[2.5rem] font-bold text-[14.5px] md:text-[16px] leading-[1.8] break-keep whitespace-pre-wrap ${
                 msg.role === 'user' 
-                  ? 'bg-[#00479d] text-white rounded-tr-none' 
-                  : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'
+                  ? 'bg-[#00479d] text-white rounded-tr-none shadow-xl shadow-blue-50' 
+                  : 'bg-white text-slate-700 rounded-tl-none border border-slate-50'
               }`}>
                 {msg.content}
-                {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
-                   <div className="mt-4 pt-4 border-t border-slate-50 flex items-center gap-3">
-                     <span className="text-[10px] text-slate-300 uppercase tracking-widest font-black">Helpful?</span>
-                     <div className="flex gap-2">
-                        <button className="w-6 h-6 rounded-md bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-blue-50 hover:text-blue-500 transition-all text-[10px]">👍</button>
-                        <button className="w-6 h-6 rounded-md bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all text-[10px]">👎</button>
+                {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && !errorDetail && (
+                   <div className="mt-6 pt-6 border-t border-slate-50 flex items-center justify-between">
+                     <div className="flex items-center gap-4 text-[11px] text-slate-300 font-black uppercase tracking-widest">
+                        Helpful?
+                        <div className="flex gap-2">
+                          <button className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-blue-50 hover:text-blue-500 transition-all flex items-center justify-center">👍</button>
+                          <button className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-rose-50 hover:text-rose-500 transition-all flex items-center justify-center">👎</button>
+                        </div>
                      </div>
+                     <span className="text-[10px] text-slate-300 font-bold">NH-GEM v3.0 Internal Engine</span>
                    </div>
                 )}
               </div>
@@ -166,81 +166,81 @@ const AiInquiry: React.FC = () => {
         
         {isLoading && (
           <div className="flex justify-start animate-in fade-in duration-300">
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
+            <div className="flex gap-5">
+              <div className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 shadow-sm">
                 <Loader2 className="w-5 h-5 text-[#00479d] animate-spin" />
               </div>
-              <div className="bg-white border border-slate-100 p-6 rounded-[2rem] rounded-tl-none shadow-sm flex flex-col gap-3 min-w-[200px]">
+              <div className="bg-white border border-slate-50 p-6 rounded-[2.5rem] rounded-tl-none shadow-sm flex flex-col gap-3 min-w-[260px]">
                 <div className="flex gap-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-200 animate-bounce"></div>
-                  <div className="w-2 h-2 rounded-full bg-blue-400 animate-bounce [animation-delay:-0.15s]"></div>
-                  <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce [animation-delay:-0.3s]"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-200 animate-bounce"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-bounce [animation-delay:-0.15s]"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce [animation-delay:-0.3s]"></div>
                 </div>
-                <p className="text-[12px] font-black text-slate-400 tracking-tight">10.15 대책 지침 데이터를 분석 중입니다...</p>
+                <p className="text-[13px] font-black text-slate-400 tracking-tight">10.15 대책 지침 및 GEM 로직 분석 중...</p>
               </div>
             </div>
           </div>
         )}
+
+        {errorDetail && (
+          <div className="flex justify-center p-4">
+             <div className="bg-rose-50 border-2 border-rose-100 p-6 rounded-3xl max-w-md w-full text-center space-y-4 shadow-lg animate-in shake duration-500">
+                <div className="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto">
+                   <AlertCircle className="w-6 h-6" />
+                </div>
+                <div>
+                   <h4 className="text-base font-black text-rose-900">엔진 연결 오류 발생</h4>
+                   <p className="text-[12px] font-bold text-rose-700 mt-2 leading-relaxed">
+                      API 호출 중 오류({errorDetail})가 발생했습니다.<br/>사용자님의 API 키 권한을 확인하거나 네트워크 상태를 점검해 주세요.
+                   </p>
+                </div>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="w-full py-3 bg-rose-600 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-rose-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" /> 엔진 즉시 재시작
+                </button>
+             </div>
+          </div>
+        )}
       </div>
 
-      {/* Floating Input Area (Gemini Style) */}
-      <div className="p-4 md:p-10 bg-gradient-to-t from-white via-white/95 to-transparent shrink-0">
-        <div className="max-w-4xl mx-auto">
+      {/* Floating Input Area (GEM Clone) */}
+      <div className="px-4 py-6 md:px-12 md:py-10 bg-gradient-to-t from-white via-white to-white/90 border-t border-slate-50 shrink-0">
+        <div className="max-w-4xl mx-auto space-y-4">
           <form onSubmit={handleSend} className="relative group">
-            {/* Input Glow Effect */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#00479d] via-blue-400 to-[#008e46] rounded-[2.5rem] blur opacity-10 group-focus-within:opacity-20 transition duration-1000"></div>
+            {/* GEM-Style Input Glow */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#00479d] via-blue-400 to-[#ccdb00] rounded-[2.5rem] blur-xl opacity-10 group-focus-within:opacity-20 transition duration-1000"></div>
             
-            <div className="relative flex items-center bg-white border-2 border-slate-100 rounded-[2rem] px-2 py-2 group-focus-within:border-[#00479d]/30 transition-all shadow-xl">
-              <div className="pl-4 text-slate-300">
-                <MessageSquareText className="w-5 h-5" />
-              </div>
+            <div className="relative flex items-center bg-white border-2 border-slate-100 rounded-[2rem] p-2 group-focus-within:border-[#00479d]/30 transition-all shadow-xl">
               <input 
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={isLoading}
-                placeholder="심사 대상 주택 및 조건을 입력하면 10.15 지침 기반 한도를 안내합니다..."
-                className="w-full bg-transparent border-none rounded-none pl-3 pr-14 py-4 md:py-5 font-bold text-sm md:text-base outline-none text-slate-800 placeholder:text-slate-300"
+                placeholder="심사 대상 및 조건에 대해 무엇이든 물어보세요..."
+                className="w-full bg-transparent border-none rounded-none pl-6 pr-14 py-4 md:py-5 font-bold text-sm md:text-base outline-none text-slate-800 placeholder:text-slate-300"
               />
               <button 
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="absolute right-2 w-12 h-12 md:w-14 md:h-14 bg-[#00479d] text-[#ccdb00] rounded-full flex items-center justify-center shadow-lg hover:shadow-blue-200 hover:scale-105 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale disabled:scale-100"
+                className="absolute right-2 w-12 h-12 md:w-14 md:h-14 bg-[#00479d] text-[#ccdb00] rounded-full flex items-center justify-center shadow-lg hover:shadow-blue-200 hover:scale-105 active:scale-90 transition-all disabled:opacity-20 disabled:grayscale disabled:scale-100"
               >
                 <Send className="w-5 h-5 md:w-6 h-6" />
               </button>
             </div>
           </form>
           
-          {/* Quick Suggestions */}
-          {!input && messages.length < 3 && (
-            <div className="flex flex-wrap justify-center gap-2 mt-6 animate-in fade-in slide-in-from-top-2 duration-1000 delay-500">
-              {[
-                "서울 20억 아파트 한도 얼마?",
-                "수도권 생활자금 1주택 규제",
-                "6개월 처분조건 상세 기준",
-                "스트레스 DSR 2단계 적용 범위"
-              ].map((s, idx) => (
-                <button 
-                  key={idx}
-                  onClick={() => setInput(s)}
-                  className="px-4 py-2 bg-white border border-slate-100 rounded-full text-[11px] font-black text-slate-500 hover:border-blue-200 hover:bg-blue-50 transition-all flex items-center gap-1.5 shadow-sm"
-                >
-                  {s} <ChevronRight className="w-3 h-3" />
-                </button>
-              ))}
-            </div>
-          )}
-          
-          <div className="mt-6 flex flex-wrap items-center gap-4 text-[10px] md:text-[11px] text-slate-400 font-bold justify-center">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-full border border-slate-100">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#008e46]" /> 
-              <span>10.15 대책 전용 지침 엔진</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-full border border-slate-100">
-              <Zap className="w-3.5 h-3.5 text-amber-500" />
-              <span>NH-PRO API Key Active</span>
-            </div>
+          <div className="flex flex-wrap items-center justify-center gap-6 text-[11px] font-black text-slate-300 uppercase tracking-widest">
+             <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 rounded-full border border-slate-100">
+               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> 10.15 Policy Engine
+             </div>
+             <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 rounded-full border border-slate-100">
+               <Zap className="w-3.5 h-3.5 text-amber-500" /> NH-PRO API Active
+             </div>
+             <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 rounded-full border border-slate-100">
+               <HelpCircle className="w-3.5 h-3.5 text-blue-500" /> NH-GEM Internal v3.0
+             </div>
           </div>
         </div>
       </div>
